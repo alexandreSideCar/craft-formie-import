@@ -1,0 +1,39 @@
+{% extends "_layouts/cp" %}
+
+{% set title = 'Formie CSV Import'|t('craft-formie-import') %}
+
+{% import '_includes/forms' as cpForms %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data">
+        {{ csrfInput() }}
+        {{ actionInput('craft-formie-import/formie-import/mapping') }}
+
+        {% set formOptions = [{ label: '— All forms —'|t('craft-formie-import'), value: '_all' }] %}
+        {% for f in forms %}
+            {% set formOptions = formOptions|merge([{ label: f.title ~ ' (' ~ f.handle ~ ')', value: f.handle }]) %}
+        {% endfor %}
+
+        <div id="fields">
+            {{ cpForms.selectField({
+                label: 'Target form'|t('craft-formie-import'),
+                instructions: 'Select a specific form or "All" if the CSV contains multiple forms.'|t('craft-formie-import'),
+                id: 'formHandle',
+                name: 'formHandle',
+                options: formOptions,
+                required: true,
+                first: true,
+            }) }}
+
+            {{ cpForms.field({
+                label: 'CSV file'|t('craft-formie-import'),
+                instructions: 'The CSV file exported from Formie (Submissions → Export).'|t('craft-formie-import'),
+                required: true,
+            }, '<input type="file" name="csvFile" accept=".csv" required>') }}
+        </div>
+
+        <div class="flex flex-nowrap" style="margin-top: 24px;">
+            <button type="submit" class="btn submit">{{ 'Analyze CSV'|t('craft-formie-import') }}</button>
+        </div>
+    </form>
+{% endblock %}

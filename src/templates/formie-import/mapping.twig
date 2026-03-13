@@ -1,0 +1,171 @@
+{% extends "_layouts/cp" %}
+
+{% set title = 'Formie Import — Mapping'|t('craft-formie-import') %}
+{% set crumbs = [
+    { label: 'Formie Import'|t('craft-formie-import'), url: cpUrl('craft-formie-import') },
+] %}
+
+{% import '_includes/forms' as cpForms %}
+
+{% block content %}
+    <form method="post">
+        {{ csrfInput() }}
+        {{ actionInput('craft-formie-import/formie-import/run') }}
+        {{ hiddenInput('formHandle', isAllForms ? '_all' : form.handle) }}
+        {{ hiddenInput('tempPath', tempPath) }}
+
+        {# Summary #}
+        <div id="fields">
+            {% if isAllForms %}
+                <div class="field">
+                    <div class="heading">
+                        <label>{{ 'Detected forms'|t('craft-formie-import') }}</label>
+                        <div class="instructions"><p>{{ '{count} rows in the CSV — {formCount} forms detected'|t('craft-formie-import', { count: rowCount, formCount: formNames|length }) }}</p></div>
+                    </div>
+                    <div class="input">
+                        <table class="data fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'CSV name'|t('craft-formie-import') }}</th>
+                                    <th>{{ 'Formie form'|t('craft-formie-import') }}</th>
+                                    <th>{{ 'Status'|t('craft-formie-import') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for name in formNames %}
+                                    <tr>
+                                        <td><code>{{ name }}</code></td>
+                                        <td>
+                                            {% if formsMap[name] is defined %}
+                                                {{ formsMap[name].title }} <span class="light">({{ formsMap[name].handle }})</span>
+                                            {% else %}
+                                                <em class="light">{{ 'No matching Formie form'|t('craft-formie-import') }}</em>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if formsMap[name] is defined %}
+                                                <span class="status green" title="{{ 'Matched'|t('craft-formie-import') }}"></span>
+                                            {% else %}
+                                                <span class="status red" title="{{ 'No match found'|t('craft-formie-import') }}"></span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="field first">
+                    <div class="heading">
+                        <label>{{ form.title }}</label>
+                        <div class="instructions"><p>{{ '{count} rows in the CSV'|t('craft-formie-import', { count: rowCount }) }}</p></div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        {# Mapping table #}
+        <h2>{{ 'Column mapping'|t('craft-formie-import') }}</h2>
+        <p class="light">{{ 'CSV columns are automatically mapped to Formie fields. Adjust if needed.'|t('craft-formie-import') }}</p>
+
+        <table class="data fullwidth" style="margin-top: 14px;">
+            <thead>
+                <tr>
+                    <th>{{ 'CSV column'|t('craft-formie-import') }}</th>
+                    <th>{{ 'Formie field'|t('craft-formie-import') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for col in dataColumns %}
+                    {% set autoHandle = autoMapping[col] ?? '' %}
+                    <tr>
+                        <td><code>{{ col }}</code></td>
+                        <td>
+                            <div class="select">
+                                <select name="mapping[{{ col }}]">
+                                    <option value="">{{ '— Ignore —'|t('craft-formie-import') }}</option>
+                                    {% if isAllForms %}
+                                        {% for handle, label in allFieldOptions %}
+                                            <option value="{{ handle }}" {% if autoHandle == handle %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for field in formFields %}
+                                            <option value="{{ field.handle }}" {% if autoHandle == field.handle %}selected{% endif %}>
+                                                {{ field.label }} ({{ field.handle }})
+                                            </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            {% if autoHandle %}
+                                <span class="status green" title="{{ 'Auto-mapped'|t('craft-formie-import') }}"></span>
+                            {% else %}
+                                <span class="status" title="{{ 'Not mapped'|t('craft-formie-import') }}"></span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <hr>
+
+        {# Options #}
+        <h2>{{ 'Options'|t('craft-formie-import') }}</h2>
+
+        <div id="fields" style="margin-top: 14px;">
+            {% if not isAllForms and formNames|length > 1 %}
+                {% set filterOptions = [{ label: '— All —'|t('craft-formie-import'), value: '' }] %}
+                {% for n in formNames %}
+                    {% set filterOptions = filterOptions|merge([{ label: n, value: n }]) %}
+                {% endfor %}
+                {{ cpForms.selectField({
+                    label: 'Filter by form (Form Name)'|t('craft-formie-import'),
+                    instructions: 'The CSV contains multiple forms. Select which one to import.'|t('craft-formie-import'),
+                    id: 'formNameFilter',
+                    name: 'formNameFilter',
+                    options: filterOptions,
+                }) }}
+            {% endif %}
+
+            {% if isAllForms %}
+                {{ cpForms.checkboxGroupField({
+                    label: 'Anti-duplicate fields'|t('craft-formie-import'),
+                    instructions: 'Check one or more fields. A submission is considered a duplicate if ALL selected fields match.'|t('craft-formie-import'),
+                    name: 'uniqueFields',
+                    options: allFieldOptions|keys|map(h => { label: allFieldOptions[h], value: h }),
+                }) }}
+            {% else %}
+                {{ cpForms.checkboxGroupField({
+                    label: 'Anti-duplicate fields'|t('craft-formie-import'),
+                    instructions: 'Check one or more fields. A submission is considered a duplicate if ALL selected fields match.'|t('craft-formie-import'),
+                    name: 'uniqueFields',
+                    options: formFields|map(f => { label: f.label ~ ' (' ~ f.handle ~ ')', value: f.handle }),
+                }) }}
+            {% endif %}
+
+            {{ cpForms.lightswitchField({
+                label: 'Skip spam'|t('craft-formie-import'),
+                instructions: 'Submissions marked as spam in the CSV will be skipped.'|t('craft-formie-import'),
+                id: 'skipSpam',
+                name: 'skipSpam',
+                on: true,
+            }) }}
+        </div>
+
+        <hr>
+
+        <div class="flex flex-nowrap" style="gap: 8px;">
+            <button type="submit" name="dryRun" value="1" class="btn">{{ 'Dry Run (test)'|t('craft-formie-import') }}</button>
+            <button type="submit" name="dryRun" value="" class="btn submit">{{ 'Import'|t('craft-formie-import') }}</button>
+        </div>
+    </form>
+{% endblock %}

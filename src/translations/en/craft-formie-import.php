@@ -1,0 +1,72 @@
+<?php
+
+return [
+    // Nav
+    'Formie Import' => 'Formie Import',
+
+    // Index page
+    'Formie CSV Import' => 'Formie CSV Import',
+    'Target form' => 'Target form',
+    'Select a specific form or "All" if the CSV contains multiple forms.' => 'Select a specific form or "All" if the CSV contains multiple forms.',
+    '— All forms —' => '— All forms —',
+    'CSV file' => 'CSV file',
+    'The CSV file exported from Formie (Submissions → Export).' => 'The CSV file exported from Formie (Submissions → Export).',
+    'Analyze CSV' => 'Analyze CSV',
+
+    // Mapping page
+    'Formie Import — Mapping' => 'Formie Import — Mapping',
+    'Detected forms' => 'Detected forms',
+    '{count} rows in the CSV — {formCount} forms detected' => '{count} rows in the CSV — {formCount} forms detected',
+    '{count} rows in the CSV' => '{count} rows in the CSV',
+    'CSV name' => 'CSV name',
+    'Formie form' => 'Formie form',
+    'Status' => 'Status',
+    'Matched' => 'Matched',
+    'No match found' => 'No match found',
+    'No matching Formie form' => 'No matching Formie form',
+    'Column mapping' => 'Column mapping',
+    'CSV columns are automatically mapped to Formie fields. Adjust if needed.' => 'CSV columns are automatically mapped to Formie fields. Adjust if needed.',
+    'CSV column' => 'CSV column',
+    'Formie field' => 'Formie field',
+    '— Ignore —' => '— Ignore —',
+    'Auto-mapped' => 'Auto-mapped',
+    'Not mapped' => 'Not mapped',
+    'Options' => 'Options',
+    'Filter by form (Form Name)' => 'Filter by form (Form Name)',
+    'The CSV contains multiple forms. Select which one to import.' => 'The CSV contains multiple forms. Select which one to import.',
+    '— All —' => '— All —',
+    'Anti-duplicate fields' => 'Anti-duplicate fields',
+    'Check one or more fields. A submission is considered a duplicate if ALL selected fields match.' => 'Check one or more fields. A submission is considered a duplicate if ALL selected fields match.',
+    'Skip spam' => 'Skip spam',
+    'Submissions marked as spam in the CSV will be skipped.' => 'Submissions marked as spam in the CSV will be skipped.',
+    'Dry Run (test)' => 'Dry Run (test)',
+    'Import' => 'Import',
+
+    // Results page
+    'Formie Import — Dry Run' => 'Formie Import — Dry Run',
+    'Formie Import — Results' => 'Formie Import — Results',
+    'Test mode (Dry Run)' => 'Test mode (Dry Run)',
+    'No submissions were created.' => 'No submissions were created.',
+    'All forms' => 'All forms',
+    'Rows processed' => 'Rows processed',
+    'Would be imported' => 'Would be imported',
+    'Imported' => 'Imported',
+    'Duplicates skipped' => 'Duplicates skipped',
+    'Spam skipped' => 'Spam skipped',
+    'Other forms skipped' => 'Other forms skipped',
+    'Errors' => 'Errors',
+    'Breakdown by form' => 'Breakdown by form',
+    'Form' => 'Form',
+    'Duplicates' => 'Duplicates',
+    'Spam' => 'Spam',
+    'Error details' => 'Error details',
+    'Are you satisfied with the result?' => 'Are you satisfied with the result?',
+    'Cancel' => 'Cancel',
+    'Confirm import' => 'Confirm import',
+    'New import' => 'New import',
+
+    // Controller messages
+    'Please upload a CSV file.' => 'Please upload a CSV file.',
+    'Form not found.' => 'Form not found.',
+    'CSV file expired. Please upload again.' => 'CSV file expired. Please upload again.',
+];

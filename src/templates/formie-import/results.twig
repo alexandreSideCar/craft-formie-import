@@ -1,0 +1,163 @@
+{% extends "_layouts/cp" %}
+
+{% set title = dryRun ? 'Formie Import — Dry Run'|t('craft-formie-import') : 'Formie Import — Results'|t('craft-formie-import') %}
+{% set crumbs = [
+    { label: 'Formie Import'|t('craft-formie-import'), url: cpUrl('craft-formie-import') },
+] %}
+
+{% block content %}
+    {# Dry run notice #}
+    {% if dryRun %}
+        <div class="readable" style="padding: 14px 16px; background: var(--yellow-050, #fef3c7); border-left: 4px solid var(--yellow-300, #fbbf24); border-radius: 4px; margin-bottom: 24px;">
+            <strong>{{ 'Test mode (Dry Run)'|t('craft-formie-import') }}</strong> — {{ 'No submissions were created.'|t('craft-formie-import') }}
+        </div>
+    {% endif %}
+
+    {# Summary #}
+    <h2>
+        {% if isAllForms %}
+            {{ 'All forms'|t('craft-formie-import') }}
+        {% else %}
+            {{ form.title }}
+        {% endif %}
+    </h2>
+
+    <table class="data fullwidth" style="margin-top: 14px;">
+        <thead>
+            <tr>
+                <th>{{ 'Status'|t('craft-formie-import') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>{{ 'Rows processed'|t('craft-formie-import') }}</strong></td>
+                <td>{{ result.totalRows }}</td>
+            </tr>
+            <tr>
+                <td><strong>{{ dryRun ? 'Would be imported'|t('craft-formie-import') : 'Imported'|t('craft-formie-import') }}</strong></td>
+                <td>
+                    <span class="status green"></span>
+                    <strong>{{ result.imported }}</strong>
+                </td>
+            </tr>
+            {% if result.skipped > 0 %}
+                <tr>
+                    <td><strong>{{ 'Duplicates skipped'|t('craft-formie-import') }}</strong></td>
+                    <td>
+                        <span class="status"></span>
+                        {{ result.skipped }}
+                    </td>
+                </tr>
+            {% endif %}
+            {% if result.skippedSpam > 0 %}
+                <tr>
+                    <td><strong>{{ 'Spam skipped'|t('craft-formie-import') }}</strong></td>
+                    <td>
+                        <span class="status"></span>
+                        {{ result.skippedSpam }}
+                    </td>
+                </tr>
+            {% endif %}
+            {% if result.skippedForm is defined and result.skippedForm > 0 %}
+                <tr>
+                    <td><strong>{{ 'Other forms skipped'|t('craft-formie-import') }}</strong></td>
+                    <td>
+                        <span class="status"></span>
+                        {{ result.skippedForm }}
+                    </td>
+                </tr>
+            {% endif %}
+            {% if result.errors > 0 %}
+                <tr>
+                    <td><strong>{{ 'Errors'|t('craft-formie-import') }}</strong></td>
+                    <td>
+                        <span class="status red"></span>
+                        <strong>{{ result.errors }}</strong>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    {# Per-form breakdown #}
+    {% if isAllForms and result.perForm is defined %}
+        <hr>
+        <h2>{{ 'Breakdown by form'|t('craft-formie-import') }}</h2>
+        <table class="data fullwidth" style="margin-top: 14px;">
+            <thead>
+                <tr>
+                    <th>{{ 'Form'|t('craft-formie-import') }}</th>
+                    <th>{{ 'Imported'|t('craft-formie-import') }}</th>
+                    <th>{{ 'Duplicates'|t('craft-formie-import') }}</th>
+                    <th>{{ 'Spam'|t('craft-formie-import') }}</th>
+                    <th>{{ 'Errors'|t('craft-formie-import') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for formName, r in result.perForm %}
+                    <tr>
+                        <td><strong>{{ formName }}</strong></td>
+                        <td>
+                            <span class="status green"></span>
+                            {{ r.imported }}
+                        </td>
+                        <td>{{ r.skipped }}</td>
+                        <td>{{ r.skippedSpam }}</td>
+                        <td>
+                            {% if r.errors > 0 %}
+                                <span class="status red"></span>
+                                {{ r.errors }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {# Error details #}
+    {% if result.errorMessages|length > 0 %}
+        <hr>
+        <h2>{{ 'Error details'|t('craft-formie-import') }}</h2>
+        <div class="readable" style="padding: 14px 16px; background: var(--red-050, #fef2f2); border-left: 4px solid var(--red-300, #f87171); border-radius: 4px; margin-top: 14px;">
+            <ul style="margin: 0; padding-left: 18px;">
+                {% for msg in result.errorMessages %}
+                    <li>{{ msg }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <hr>
+
+    {# Actions #}
+    {% if dryRun %}
+        <p>{{ 'Are you satisfied with the result?'|t('craft-formie-import') }}</p>
+        <form method="post" style="margin-top: 14px;">
+            {{ csrfInput() }}
+            {{ actionInput('craft-formie-import/formie-import/run') }}
+            {{ hiddenInput('formHandle', formHandle) }}
+            {{ hiddenInput('tempPath', tempPath) }}
+            {% for uf in uniqueFields|split(',') %}
+                {% if uf %}
+                    {{ hiddenInput('uniqueFields[]', uf) }}
+                {% endif %}
+            {% endfor %}
+            {{ hiddenInput('formNameFilter', formNameFilter) }}
+            {{ hiddenInput('skipSpam', skipSpam ? '1' : '') }}
+            {{ hiddenInput('dryRun', '') }}
+            {% for csvCol, fieldHandle in mapping %}
+                {{ hiddenInput('mapping[' ~ csvCol ~ ']', fieldHandle) }}
+            {% endfor %}
+            <div class="flex flex-nowrap" style="gap: 8px;">
+                <a href="{{ cpUrl('craft-formie-import') }}" class="btn">{{ 'Cancel'|t('craft-formie-import') }}</a>
+                <button type="submit" class="btn submit">{{ 'Confirm import'|t('craft-formie-import') }}</button>
+            </div>
+        </form>
+    {% else %}
+        <a href="{{ cpUrl('craft-formie-import') }}" class="btn submit">{{ 'New import'|t('craft-formie-import') }}</a>
+    {% endif %}
+{% endblock %}
