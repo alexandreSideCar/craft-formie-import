@@ -1,6 +1,6 @@
 {
   "name": "sidecar/craft-formie-import",
-  "description": "CSV import tool for Formie submissions in Craft CMS",
+  "description": "CSV import tool for Formie submissions in Craft CMS 5",
   "type": "craft-plugin",
   "license": "MIT",
   "require": {
