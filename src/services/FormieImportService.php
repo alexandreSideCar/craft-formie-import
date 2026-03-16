@@ -15,6 +15,9 @@ class FormieImportService extends Component
         'Date Created', 'Date Updated', 'Date Deleted', 'Trashed', 'Status',
     ];
 
+    /**
+     * @return string[]
+     */
     public function readCsvHeaders(string $filePath, string $delimiter = ','): array
     {
         $fh = fopen($filePath, 'r');
@@ -186,16 +189,17 @@ class FormieImportService extends Component
 
         $existingKeys = [];
         if (!empty($uniqueFieldsArray)) {
-            $existing = Submission::find()->form($formHandle)->all();
-            foreach ($existing as $sub) {
-                $subValues = [];
-                foreach ($uniqueFieldsArray as $uf) {
-                    $val = $sub->getFieldValue($uf);
-                    $subValues[$uf] = ($val !== null) ? (string)$val : '';
-                }
-                $key = $this->buildDuplicateKey($subValues, $uniqueFieldsArray);
-                if ($key !== null) {
-                    $existingKeys[$key] = true;
+            foreach (Submission::find()->form($formHandle)->batch(100) as $batch) {
+                foreach ($batch as $sub) {
+                    $subValues = [];
+                    foreach ($uniqueFieldsArray as $uf) {
+                        $val = $sub->getFieldValue($uf);
+                        $subValues[$uf] = ($val !== null) ? (string)$val : '';
+                    }
+                    $key = $this->buildDuplicateKey($subValues, $uniqueFieldsArray);
+                    if ($key !== null) {
+                        $existingKeys[$key] = true;
+                    }
                 }
             }
         }

@@ -11,6 +11,17 @@ use yii\web\Response;
 
 class FormieImportController extends Controller
 {
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        $this->requireAdmin();
+
+        return true;
+    }
+
     public function actionIndex(): Response
     {
         $forms = Formie::$plugin->getForms()->getAllForms();
@@ -30,6 +41,12 @@ class FormieImportController extends Controller
         $csvFile = UploadedFile::getInstanceByName('csvFile');
         if (!$csvFile) {
             Craft::$app->getSession()->setError(Craft::t('craft-formie-import', 'Please upload a CSV file.'));
+            return $this->redirect('craft-formie-import');
+        }
+
+        $allowedExtensions = ['csv', 'txt'];
+        if (!in_array(strtolower($csvFile->getExtension()), $allowedExtensions)) {
+            Craft::$app->getSession()->setError(Craft::t('craft-formie-import', 'Only CSV files are allowed.'));
             return $this->redirect('craft-formie-import');
         }
 
@@ -135,7 +152,8 @@ class FormieImportController extends Controller
         $dryRun = (bool)$this->request->getBodyParam('dryRun', false);
         $mappingData = $this->request->getBodyParam('mapping', []);
 
-        if (!file_exists($tempPath)) {
+        $baseTmpPath = realpath(Craft::$app->getPath()->getTempPath());
+        if (!$tempPath || !file_exists($tempPath) || strpos(realpath($tempPath), $baseTmpPath) !== 0) {
             Craft::$app->getSession()->setError(Craft::t('craft-formie-import', 'CSV file expired. Please upload again.'));
             return $this->redirect('craft-formie-import');
         }
@@ -208,6 +226,9 @@ class FormieImportController extends Controller
 
         $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
         if (!$form) {
+            if (file_exists($tempPath)) {
+                unlink($tempPath);
+            }
             Craft::$app->getSession()->setError(Craft::t('craft-formie-import', 'Form not found.'));
             return $this->redirect('craft-formie-import');
         }
