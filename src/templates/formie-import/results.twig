@@ -8,7 +8,7 @@
 {% block content %}
     {# Dry run notice #}
     {% if dryRun %}
-        <div class="readable" style="padding: 14px 16px; background: var(--yellow-050, #fef3c7); border-left: 4px solid var(--yellow-300, #fbbf24); border-radius: 4px; margin-bottom: 24px;">
+        <div class="readable" style="padding: var(--m) var(--l); background: var(--yellow-050); border-left: 4px solid var(--yellow-300); border-radius: var(--s); margin-bottom: var(--xl);">
             <strong>{{ 'Test mode (Dry Run)'|t('craft-formie-import') }}</strong> — {{ 'No submissions were created.'|t('craft-formie-import') }}
         </div>
     {% endif %}
@@ -22,7 +22,7 @@
         {% endif %}
     </h2>
 
-    <table class="data fullwidth" style="margin-top: 14px;">
+    <table class="data fullwidth" style="margin-top: var(--m);">
         <thead>
             <tr>
                 <th>{{ 'Status'|t('craft-formie-import') }}</th>
@@ -84,7 +84,7 @@
     {% if isAllForms and result.perForm is defined %}
         <hr>
         <h2>{{ 'Breakdown by form'|t('craft-formie-import') }}</h2>
-        <table class="data fullwidth" style="margin-top: 14px;">
+        <table class="data fullwidth" style="margin-top: var(--m);">
             <thead>
                 <tr>
                     <th>{{ 'Form'|t('craft-formie-import') }}</th>
@@ -122,8 +122,8 @@
     {% if result.errorMessages|length > 0 %}
         <hr>
         <h2>{{ 'Error details'|t('craft-formie-import') }}</h2>
-        <div class="readable" style="padding: 14px 16px; background: var(--red-050, #fef2f2); border-left: 4px solid var(--red-300, #f87171); border-radius: 4px; margin-top: 14px;">
-            <ul style="margin: 0; padding-left: 18px;">
+        <div class="readable" style="padding: var(--m) var(--l); background: var(--red-050); border-left: 4px solid var(--red-300); border-radius: var(--s); margin-top: var(--m);">
+            <ul style="margin: 0; padding-left: var(--l);">
                 {% for msg in result.errorMessages %}
                     <li>{{ msg }}</li>
                 {% endfor %}
@@ -136,7 +136,7 @@
     {# Actions #}
     {% if dryRun %}
         <p>{{ 'Are you satisfied with the result?'|t('craft-formie-import') }}</p>
-        <form method="post" style="margin-top: 14px;">
+        <form method="post" style="margin-top: var(--m);">
             {{ csrfInput() }}
             {{ actionInput('craft-formie-import/formie-import/run') }}
             {{ hiddenInput('formHandle', formHandle) }}
@@ -152,7 +152,7 @@
             {% for csvCol, fieldHandle in mapping %}
                 {{ hiddenInput('mapping[' ~ csvCol ~ ']', fieldHandle) }}
             {% endfor %}
-            <div class="flex flex-nowrap" style="gap: 8px;">
+            <div class="flex flex-nowrap" style="gap: var(--s);">
                 <a href="{{ cpUrl('craft-formie-import') }}" class="btn">{{ 'Cancel'|t('craft-formie-import') }}</a>
                 <button type="submit" class="btn submit">{{ 'Confirm import'|t('craft-formie-import') }}</button>
             </div>

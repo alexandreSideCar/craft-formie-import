@@ -11,11 +11,10 @@ use yii\base\Event;
 
 /**
  * @property-read FormieImportService $import
+ * @method static Plugin getInstance()
  */
 class Plugin extends BasePlugin
 {
-    public static Plugin $plugin;
-
     public bool $hasCpSection = true;
     public string $schemaVersion = '1.0.0';
 
@@ -31,7 +30,6 @@ class Plugin extends BasePlugin
     public function init(): void
     {
         parent::init();
-        self::$plugin = $this;
 
         // Console controllers
         if (Craft::$app instanceof \craft\console\Application) {

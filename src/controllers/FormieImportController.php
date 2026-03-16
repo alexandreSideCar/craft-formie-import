@@ -53,7 +53,7 @@ class FormieImportController extends Controller
         $tempPath = Craft::$app->getPath()->getTempPath() . '/formie-import-' . uniqid() . '.csv';
         $csvFile->saveAs($tempPath);
 
-        $service = Plugin::$plugin->import;
+        $service = Plugin::getInstance()->import;
         $headers = $service->readCsvHeaders($tempPath);
         $formNames = $service->getFormNamesFromCsv($tempPath);
 
@@ -68,19 +68,26 @@ class FormieImportController extends Controller
 
         if ($isAllForms) {
             $allForms = Formie::$plugin->getForms()->getAllForms();
+
+            // Pre-build lookup maps by handle and title
+            $formsByHandle = [];
+            $formsByTitle = [];
+            foreach ($allForms as $f) {
+                $formsByHandle[$f->handle] = $f;
+                $formsByTitle[$f->title] = $f;
+            }
+
             $formsMap = [];
             $allMappings = [];
             $allFormFields = [];
 
             foreach ($formNames as $csvFormName) {
-                foreach ($allForms as $f) {
-                    if ($f->handle === $csvFormName || $f->title === $csvFormName) {
-                        $formsMap[$csvFormName] = $f;
-                        $fields = $f->getCustomFields();
-                        $allFormFields[$f->handle] = $fields;
-                        $allMappings[$f->handle] = $service->buildAutoMapping($headers, $fields);
-                        break;
-                    }
+                $f = $formsByHandle[$csvFormName] ?? $formsByTitle[$csvFormName] ?? null;
+                if ($f) {
+                    $formsMap[$csvFormName] = $f;
+                    $fields = $f->getCustomFields();
+                    $allFormFields[$f->handle] = $fields;
+                    $allMappings[$f->handle] = $service->buildAutoMapping($headers, $fields);
                 }
             }
 
@@ -158,19 +165,24 @@ class FormieImportController extends Controller
             return $this->redirect('craft-formie-import');
         }
 
-        $service = Plugin::$plugin->import;
+        $service = Plugin::getInstance()->import;
 
         if ($isAllForms) {
             $allForms = Formie::$plugin->getForms()->getAllForms();
             $formNames = $service->getFormNamesFromCsv($tempPath);
 
+            $formsByHandle = [];
+            $formsByTitle = [];
+            foreach ($allForms as $f) {
+                $formsByHandle[$f->handle] = $f;
+                $formsByTitle[$f->title] = $f;
+            }
+
             $formsMap = [];
             foreach ($formNames as $csvFormName) {
-                foreach ($allForms as $f) {
-                    if ($f->handle === $csvFormName || $f->title === $csvFormName) {
-                        $formsMap[$csvFormName] = $f;
-                        break;
-                    }
+                $f = $formsByHandle[$csvFormName] ?? $formsByTitle[$csvFormName] ?? null;
+                if ($f) {
+                    $formsMap[$csvFormName] = $f;
                 }
             }
 

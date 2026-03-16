@@ -64,7 +64,7 @@ class FormieController extends Controller
             return ExitCode::DATAERR;
         }
 
-        $service = Plugin::$plugin->import;
+        $service = Plugin::getInstance()->import;
         $headers = $service->readCsvHeaders($file, $this->delimiter);
 
         if (!$headers) {
@@ -122,7 +122,7 @@ class FormieController extends Controller
             return ExitCode::DATAERR;
         }
 
-        $service = Plugin::$plugin->import;
+        $service = Plugin::getInstance()->import;
 
         $columnMapping = [];
         if ($this->mapping) {

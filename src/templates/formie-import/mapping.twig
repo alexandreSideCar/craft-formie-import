@@ -71,7 +71,7 @@
         <h2>{{ 'Column mapping'|t('craft-formie-import') }}</h2>
         <p class="light">{{ 'CSV columns are automatically mapped to Formie fields. Adjust if needed.'|t('craft-formie-import') }}</p>
 
-        <table class="data fullwidth" style="margin-top: 14px;">
+        <table class="data fullwidth" style="margin-top: var(--m);">
             <thead>
                 <tr>
                     <th>{{ 'CSV column'|t('craft-formie-import') }}</th>
@@ -121,7 +121,7 @@
         {# Options #}
         <h2>{{ 'Options'|t('craft-formie-import') }}</h2>
 
-        <div id="fields" style="margin-top: 14px;">
+        <div id="fields" style="margin-top: var(--m);">
             {% if not isAllForms and formNames|length > 1 %}
                 {% set filterOptions = [{ label: '— All —'|t('craft-formie-import'), value: '' }] %}
                 {% for n in formNames %}
@@ -163,7 +163,7 @@
 
         <hr>
 
-        <div class="flex flex-nowrap" style="gap: 8px;">
+        <div class="flex flex-nowrap" style="gap: var(--s);">
             <button type="submit" name="dryRun" value="1" class="btn">{{ 'Dry Run (test)'|t('craft-formie-import') }}</button>
             <button type="submit" name="dryRun" value="" class="btn submit">{{ 'Import'|t('craft-formie-import') }}</button>
         </div>
