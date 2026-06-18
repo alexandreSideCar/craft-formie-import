@@ -17,6 +17,7 @@
     "handle": "craft-formie-import",
     "name": "Formie Import",
     "class": "sidecar\\craftformieimport\\Plugin",
-    "developer": "Side-Car"
+    "developer": "Side-Car",
+    "craftcms-claude-skills": "1.2.0"
   }
 }
