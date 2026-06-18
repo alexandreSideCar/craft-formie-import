@@ -9,6 +9,12 @@ use yii\base\Component;
 
 class FormieImportService extends Component
 {
+    /**
+     * Hard cap on rows processed per import to bound a synchronous request.
+     * Larger files should use the console command.
+     */
+    public const MAX_ROWS = 50000;
+
     public const META_COLUMNS = [
         'ID', 'Form ID', 'Form Name', 'User ID', 'IP Address',
         'Is Incomplete?', 'Is Spam?', 'Spam Reason', 'Spam Type', 'Title',
@@ -207,6 +213,12 @@ class FormieImportService extends Component
         $row = 1;
         while (($data = fgetcsv($fh, 0, $delimiter)) !== false) {
             $row++;
+
+            if ($result['totalRows'] >= self::MAX_ROWS) {
+                $result['errorMessages'][] = "Row limit reached (" . self::MAX_ROWS . "). Remaining rows skipped — use the console command for larger files.";
+                break;
+            }
+
             $result['totalRows']++;
 
             if (count($data) !== count($headers)) {

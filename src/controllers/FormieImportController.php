@@ -50,7 +50,11 @@ class FormieImportController extends Controller
             return $this->redirect('craft-formie-import');
         }
 
-        $tempPath = Craft::$app->getPath()->getTempPath() . '/formie-import-' . uniqid() . '.csv';
+        // Clear stale uploads from abandoned flows before writing a new one.
+        $this->cleanupStaleTempFiles();
+
+        $tempPath = Craft::$app->getPath()->getTempPath()
+            . '/formie-import-' . Craft::$app->getSecurity()->generateRandomString(16) . '.csv';
         $csvFile->saveAs($tempPath);
 
         $service = Plugin::getInstance()->import;
@@ -271,5 +275,21 @@ class FormieImportController extends Controller
             'skipSpam' => $skipSpam,
             'mapping' => $mappingData,
         ]);
+    }
+
+    /**
+     * Remove formie-import temp uploads older than one hour. These hold submission
+     * PII and are normally unlinked on the run step, but abandoned flows leave them behind.
+     */
+    private function cleanupStaleTempFiles(): void
+    {
+        $tempPath = Craft::$app->getPath()->getTempPath();
+        $cutoff = time() - 3600;
+
+        foreach (glob($tempPath . '/formie-import-*.csv') ?: [] as $file) {
+            if (@filemtime($file) < $cutoff) {
+                @unlink($file);
+            }
+        }
     }
 }
