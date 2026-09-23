@@ -161,6 +161,7 @@ class FormieImportController extends Controller
         $formNameFilter = $this->request->getBodyParam('formNameFilter', '');
         $skipSpam = (bool)$this->request->getBodyParam('skipSpam', true);
         $dryRun = (bool)$this->request->getBodyParam('dryRun', false);
+        $preserveMeta = (bool)$this->request->getBodyParam('preserveMeta', false);
         $mappingData = $this->request->getBodyParam('mapping', []);
 
         $baseTmpPath = realpath(Craft::$app->getPath()->getTempPath());
@@ -197,6 +198,7 @@ class FormieImportController extends Controller
                 'skippedForm' => 0,
                 'errors' => 0,
                 'errorMessages' => [],
+                'warnings' => [],
                 'totalRows' => 0,
                 'perForm' => [],
             ];
@@ -209,7 +211,9 @@ class FormieImportController extends Controller
                     $uniqueFields,
                     $csvFormName,
                     $skipSpam,
-                    $dryRun
+                    $dryRun,
+                    ',',
+                    $preserveMeta
                 );
 
                 $combinedResult['imported'] += $result['imported'];
@@ -218,6 +222,7 @@ class FormieImportController extends Controller
                 $combinedResult['errors'] += $result['errors'];
                 $combinedResult['totalRows'] += $result['totalRows'];
                 $combinedResult['errorMessages'] = array_merge($combinedResult['errorMessages'], $result['errorMessages']);
+                $combinedResult['warnings'] = array_merge($combinedResult['warnings'], $result['warnings']);
                 $combinedResult['perForm'][$csvFormName] = $result;
             }
 
@@ -236,6 +241,7 @@ class FormieImportController extends Controller
                 'uniqueFields' => $uniqueFields,
                 'formNameFilter' => $formNameFilter,
                 'skipSpam' => $skipSpam,
+                'preserveMeta' => $preserveMeta,
                 'mapping' => $mappingData,
             ]);
         }
@@ -256,7 +262,9 @@ class FormieImportController extends Controller
             $uniqueFields,
             $formNameFilter,
             $skipSpam,
-            $dryRun
+            $dryRun,
+            ',',
+            $preserveMeta
         );
 
         if (!$dryRun && file_exists($tempPath)) {
@@ -273,6 +281,7 @@ class FormieImportController extends Controller
             'uniqueFields' => $uniqueFields,
             'formNameFilter' => $formNameFilter,
             'skipSpam' => $skipSpam,
+            'preserveMeta' => $preserveMeta,
             'mapping' => $mappingData,
         ]);
     }

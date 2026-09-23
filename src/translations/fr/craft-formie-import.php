@@ -39,6 +39,8 @@ return [
     'Check one or more fields. A submission is considered a duplicate if ALL selected fields match.' => 'Cochez un ou plusieurs champs. Une soumission est considérée comme doublon si TOUS les champs sélectionnés correspondent.',
     'Skip spam' => 'Ignorer le spam',
     'Submissions marked as spam in the CSV will be skipped.' => 'Les soumissions marquées comme spam dans le CSV seront ignorées.',
+    'Preserve metadata' => 'Conserver les métadonnées',
+    'Keep the exported dates, IP address, spam flags and status on the created submissions instead of stamping them with now. Use it to move submissions between environments.' => 'Conserve les dates, l\'adresse IP, les indicateurs de spam et le statut exportés sur les soumissions créées, au lieu de les dater d\'aujourd\'hui. Utile pour déplacer des soumissions d\'un environnement à un autre.',
     'Dry Run (test)' => 'Dry Run (test)',
     'Import' => 'Importer',
 
@@ -55,6 +57,7 @@ return [
     'Spam skipped' => 'Spam ignoré',
     'Other forms skipped' => 'Autres formulaires ignorés',
     'Errors' => 'Erreurs',
+    'Warnings' => 'Avertissements',
     'Breakdown by form' => 'Détail par formulaire',
     'Form' => 'Formulaire',
     'Duplicates' => 'Doublons',

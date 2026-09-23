@@ -159,6 +159,14 @@
                 name: 'skipSpam',
                 on: true,
             }) }}
+
+            {{ cpForms.lightswitchField({
+                label: 'Preserve metadata'|t('craft-formie-import'),
+                instructions: 'Keep the exported dates, IP address, spam flags and status on the created submissions instead of stamping them with now. Use it to move submissions between environments.'|t('craft-formie-import'),
+                id: 'preserveMeta',
+                name: 'preserveMeta',
+                on: false,
+            }) }}
         </div>
 
         <hr>

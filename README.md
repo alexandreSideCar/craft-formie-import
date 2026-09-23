@@ -14,6 +14,7 @@ CSV import tool for Formie submissions in Craft CMS 5.
 - **Spam filtering** — Optionally skip rows marked as spam in the CSV
 - **Dry run mode** — Test your import before committing to the database
 - **Console commands** — List forms, generate mappings, and import via CLI
+- **Environment migration** — Preserve the exported dates, IP, spam flags and status, re-link uploaded files, and re-run safely for a delta (`--since`)
 - **Translations** — English and French included
 
 ## Requirements
@@ -44,21 +45,40 @@ php craft plugin/install craft-formie-import
 
 ```bash
 # List all forms and their fields
-php craft formie/list-forms
+php craft craft-formie-import/formie/list-forms
 
 # Generate a mapping file for a form
-php craft formie/generate-mapping path/to/file.csv --form=myFormHandle
+php craft craft-formie-import/formie/generate-mapping path/to/file.csv --form=myFormHandle
 
 # Import a CSV file
-php craft formie/import-csv path/to/file.csv --form=myFormHandle
+php craft craft-formie-import/formie/import-csv path/to/file.csv --form=myFormHandle
 
 # Import with options
-php craft formie/import-csv path/to/file.csv \
+php craft craft-formie-import/formie/import-csv path/to/file.csv \
   --form=myFormHandle \
   --uniqueFields=email,phone \
   --skipSpam \
   --dryRun
 ```
+
+### Moving submissions between environments
+
+A Formie export round-trips cleanly when the target form has the same fields:
+
+```bash
+php craft craft-formie-import/formie/import-csv path/to/export.csv \
+  --form=myFormHandle \
+  --preserveMeta \
+  --uniqueFields="Date Created" \
+  --since=2026-09-04 \
+  --filesDir=/path/to/uploaded/files
+```
+
+- `--preserveMeta` keeps the exported `Date Created`, `Date Updated`, `IP Address`, `Is Spam?`, `Spam Reason`, `Spam Type`, `Is Incomplete?` and `Status` on the created submissions instead of stamping them with the import time. Also available as the "Preserve metadata" switch in the CP.
+- `--uniqueFields` accepts the metadata columns `Date Created` and `IP Address` next to field handles, so a re-run skips submissions already imported.
+- `--since` ignores rows created before a date (read in the system timezone), to import only a delta.
+- File upload columns hold the asset URL or file name. Each file is looked up by name in the field's upload volume; when it is not there and `--filesDir` holds a file of that name, it is uploaded to the volume's root folder. Files that cannot be resolved are reported as warnings and left out of the field. Note that a file upload field with a *filename format* renames files on save, so a file keeps its exported name only when the submission's other values are imported too.
+- Sub-field columns (`Name: First Name`, `Name: Last Name`, …) each feed their own sub-field.
 
 ## CSV Format
 

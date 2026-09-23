@@ -77,6 +77,20 @@
                     </td>
                 </tr>
             {% endif %}
+            {% if result.warnings is defined and result.warnings|length %}
+                <tr>
+                    <td><strong>{{ 'Warnings'|t('craft-formie-import') }}</strong></td>
+                    <td>
+                        <span class="status orange"></span>
+                        <strong>{{ result.warnings|length }}</strong>
+                        <ul style="margin-top: var(--xs);">
+                            {% for warning in result.warnings %}
+                                <li><code>{{ warning }}</code></li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 

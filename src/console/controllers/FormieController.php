@@ -18,10 +18,26 @@ class FormieController extends Controller
     public string $mapping = '';
     public bool $dryRun = false;
 
+    /**
+     * @var bool Keep the exported dates, IP, spam flags and status on the created submissions.
+     */
+    public bool $preserveMeta = false;
+
+    /**
+     * @var string Skip rows whose "Date Created" is before this date (e.g. 2026-09-04).
+     */
+    public string $since = '';
+
+    /**
+     * @var string Folder holding the uploaded files, for file upload fields whose asset is not in the volume yet.
+     */
+    public string $filesDir = '';
+
     public function options($actionID): array
     {
         return array_merge(parent::options($actionID), [
             'form', 'uniqueFields', 'delimiter', 'formNameFilter', 'skipSpam', 'mapping', 'dryRun',
+            'preserveMeta', 'since', 'filesDir',
         ]);
     }
 
@@ -156,7 +172,10 @@ class FormieController extends Controller
             $this->formNameFilter,
             $this->skipSpam,
             $this->dryRun,
-            $this->delimiter
+            $this->delimiter,
+            $this->preserveMeta,
+            $this->since,
+            $this->filesDir
         );
 
         $this->stdout("\n--- Results ---\n");
@@ -167,6 +186,15 @@ class FormieController extends Controller
         }
         if ($result['skippedForm'] > 0) {
             $this->stdout("Skipped (other forms): {$result['skippedForm']}\n");
+        }
+        if ($result['skippedSince'] > 0) {
+            $this->stdout("Skipped (before --since): {$result['skippedSince']}\n");
+        }
+        if (!empty($result['warnings'])) {
+            $this->stdout("Warnings: " . count($result['warnings']) . "\n");
+            foreach ($result['warnings'] as $msg) {
+                $this->stdout("  {$msg}\n");
+            }
         }
         if ($result['errors'] > 0) {
             $this->stdout("Errors: {$result['errors']}\n");

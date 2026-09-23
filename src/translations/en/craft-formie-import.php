@@ -39,6 +39,8 @@ return [
     'Check one or more fields. A submission is considered a duplicate if ALL selected fields match.' => 'Check one or more fields. A submission is considered a duplicate if ALL selected fields match.',
     'Skip spam' => 'Skip spam',
     'Submissions marked as spam in the CSV will be skipped.' => 'Submissions marked as spam in the CSV will be skipped.',
+    'Preserve metadata' => 'Preserve metadata',
+    'Keep the exported dates, IP address, spam flags and status on the created submissions instead of stamping them with now. Use it to move submissions between environments.' => 'Keep the exported dates, IP address, spam flags and status on the created submissions instead of stamping them with now. Use it to move submissions between environments.',
     'Dry Run (test)' => 'Dry Run (test)',
     'Import' => 'Import',
 
@@ -55,6 +57,7 @@ return [
     'Spam skipped' => 'Spam skipped',
     'Other forms skipped' => 'Other forms skipped',
     'Errors' => 'Errors',
+    'Warnings' => 'Warnings',
     'Breakdown by form' => 'Breakdown by form',
     'Form' => 'Form',
     'Duplicates' => 'Duplicates',
