@@ -552,7 +552,7 @@ class FormieImportService extends Component
 
             $asset = Asset::find()
                 ->volumeId($volume->id)
-                ->filename([$filename, AssetsHelper::prepareAssetName($filename)])
+                ->filename($this->_filenameCandidates($filename))
                 ->one();
 
             if ($asset === null && $filesDir !== '') {
@@ -568,6 +568,30 @@ class FormieImportService extends Component
         }
 
         return $assetIds;
+    }
+
+    /**
+     * Spellings under which an exported file name may be indexed: as is, sanitized
+     * the way Craft names uploads, and in both Unicode normalization forms (macOS
+     * stores accented names decomposed, exports and Linux hosts compose them).
+     *
+     * @return string[]
+     */
+    private function _filenameCandidates(string $filename): array
+    {
+        $candidates = [$filename, AssetsHelper::prepareAssetName($filename)];
+
+        if (class_exists(\Normalizer::class)) {
+            foreach ([\Normalizer::FORM_C, \Normalizer::FORM_D] as $form) {
+                $normalized = \Normalizer::normalize($filename, $form);
+                if ($normalized !== false) {
+                    $candidates[] = $normalized;
+                    $candidates[] = AssetsHelper::prepareAssetName($normalized);
+                }
+            }
+        }
+
+        return array_values(array_unique($candidates));
     }
 
     /**

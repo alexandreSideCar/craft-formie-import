@@ -1,5 +1,10 @@
 # Release Notes for Formie Import
 
+## 1.1.1 - 2026-09-23
+
+### Fixed
+- File upload look-up matches file names in both Unicode normalization forms (macOS stores accented names decomposed, exports and Linux hosts compose them).
+
 ## 1.1.0 - 2026-09-23
 
 ### Added
