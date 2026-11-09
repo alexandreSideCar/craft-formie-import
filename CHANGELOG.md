@@ -1,6 +1,6 @@
 # Release Notes for Formie Import
 
-## 2.0.0 - Unreleased
+## 2.0.0 - 2026-11-09
 
 > Formie Import 2 requires Formie 4. Stay on Formie Import 1.x for Formie 3.
 
