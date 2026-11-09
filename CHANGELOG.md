@@ -1,5 +1,20 @@
 # Release Notes for Formie Import
 
+## 2.0.0 - Unreleased
+
+> Formie Import 2 requires Formie 4. Stay on Formie Import 1.x for Formie 3.
+
+### Changed
+- Formie Import now requires Formie 4.0 or later.
+
+### Added
+- Formie 4 exports are read as is: `Yes` / `No` flags, and a Name field exported as a single column is split into first and last name (with a warning) when the target field stores them separately.
+- Formie 3 exports can still be imported, to bring submissions over to a Formie 4 site.
+- File upload fields without their own upload location use the one set in the Formie form defaults.
+
+### Fixed
+- Duplicate detection now also looks at spam and incomplete submissions, so re-running an import with `--skipSpam=0` no longer creates the spam rows again.
+
 ## 1.1.1 - 2026-09-23
 
 ### Fixed

@@ -10,15 +10,17 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use DateTime;
 use Throwable;
+use verbb\formie\base\ContainerParentField;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\SingleNestedField;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
+use verbb\formie\fields\Name;
 use verbb\formie\Formie;
 use yii\base\Component;
 
 /**
- * Imports Formie submissions from a CSV exported by Formie (Submissions → Export).
+ * Imports Formie submissions from a CSV exported by Formie (Submissions → Export),
+ * in the Formie 4 format or the Formie 3 one.
  *
  * Besides the field columns, the export carries submission metadata (ID, IP,
  * spam flags, status, dates). With `preserveMeta` on, that metadata is written
@@ -118,7 +120,7 @@ class FormieImportService extends Component
             $labelToHandle[mb_strtolower(trim($field->label))] = $field->handle;
             $labelToHandle[mb_strtolower(trim($field->handle))] = $field->handle;
 
-            if ($field instanceof \verbb\formie\fields\Name) {
+            if ($field instanceof Name) {
                 $subFieldMap[mb_strtolower(trim($field->label))] = $field->handle;
             }
         }
@@ -233,7 +235,7 @@ class FormieImportService extends Component
         }
 
         $headers = array_map(fn($h) => trim($h, "\xEF\xBB\xBF \t\n\r"), $headers);
-        $formFields = $form->getCustomFields();
+        $formFields = $form->getFields();
         $validHandles = array_map(fn($f) => $f->handle, $formFields);
         $fieldsByHandle = [];
         foreach ($formFields as $field) {
@@ -241,6 +243,15 @@ class FormieImportService extends Component
         }
 
         $columnMapping = array_filter($columnMapping, fn($v) => $v !== '' && $v !== null);
+
+        // Fields the CSV feeds through sub-field columns ("Name: First Name")
+        $handlesWithSubColumns = [];
+        foreach ($headers as $header) {
+            $fieldHandle = $columnMapping[$header] ?? $header;
+            if (isset($fieldsByHandle[$fieldHandle]) && $this->_subFieldHandle($fieldsByHandle[$fieldHandle], $header) !== null) {
+                $handlesWithSubColumns[$fieldHandle] = true;
+            }
+        }
 
         $uniqueFieldsArray = [];
         if ($uniqueFields !== '') {
@@ -254,7 +265,10 @@ class FormieImportService extends Component
 
         $existingKeys = [];
         if (!empty($uniqueFieldsArray)) {
-            foreach (Submission::find()->form($formHandle)->batch(100) as $batch) {
+            // Spam and incomplete submissions are left out of a query by default
+            $existingQuery = Submission::find()->form($formHandle)->isSpam(null)->isIncomplete(null);
+
+            foreach ($existingQuery->batch(100) as $batch) {
                 foreach ($batch as $sub) {
                     $subValues = [];
                     foreach ($uniqueFieldsArray as $uf) {
@@ -294,7 +308,7 @@ class FormieImportService extends Component
                 }
             }
 
-            if ($skipSpam && isset($rowData['Is Spam?']) && $rowData['Is Spam?'] === '1') {
+            if ($skipSpam && $this->_isTruthy($rowData['Is Spam?'] ?? null)) {
                 $result['skippedSpam']++;
                 continue;
             }
@@ -323,7 +337,12 @@ class FormieImportService extends Component
                     continue;
                 }
 
-                $fieldValues[$fieldHandle] = trim($value);
+                // A combined column never replaces the sub-field columns of the same field
+                if (isset($handlesWithSubColumns[$fieldHandle])) {
+                    continue;
+                }
+
+                $fieldValues[$fieldHandle] = $this->_combinedValue($fieldsByHandle[$fieldHandle], trim($value), $csvCol, $result['warnings']);
             }
 
             $uniqueValues = $this->_rowUniqueValues($fieldValues, $rowData, $dateCreated, $uniqueFieldsArray);
@@ -465,8 +484,8 @@ class FormieImportService extends Component
             $submission->ipAddress = $ipAddress;
         }
 
-        $submission->isIncomplete = ($rowData['Is Incomplete?'] ?? '') === '1';
-        $submission->isSpam = ($rowData['Is Spam?'] ?? '') === '1';
+        $submission->isIncomplete = $this->_isTruthy($rowData['Is Incomplete?'] ?? null);
+        $submission->isSpam = $this->_isTruthy($rowData['Is Spam?'] ?? null);
 
         $spamReason = trim((string)($rowData['Spam Reason'] ?? ''));
         $submission->spamReason = $spamReason !== '' ? $spamReason : null;
@@ -476,10 +495,10 @@ class FormieImportService extends Component
 
         $statusValue = trim((string)($rowData['Status'] ?? ''));
         if ($statusValue !== '') {
-            $status = Formie::$plugin->getStatuses()->getStatusByHandle($statusValue);
+            $status = Formie::$plugin->getSubmissionStatuses()->getStatusByHandle($statusValue);
 
             if ($status === null) {
-                foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $candidate) {
+                foreach (Formie::$plugin->getSubmissionStatuses()->getAllStatuses() as $candidate) {
                     if (mb_strtolower($candidate->name) === mb_strtolower($statusValue)) {
                         $status = $candidate;
                         break;
@@ -534,6 +553,11 @@ class FormieImportService extends Component
     {
         $volume = null;
         $source = (string)$field->uploadLocationSource;
+
+        // A field without its own upload location uses the form defaults
+        if ($source === '') {
+            $source = (string)(Formie::$plugin->getFormDefaults()->resolveFieldTypeDefaults(FileUpload::class)['uploadLocationSource'] ?? '');
+        }
 
         if (str_starts_with($source, 'volume:') || str_starts_with($source, 'folder:')) {
             $volume = Craft::$app->getVolumes()->getVolumeByUid(explode(':', $source)[1]);
@@ -640,6 +664,53 @@ class FormieImportService extends Component
     }
 
     /**
+     * Reads a boolean metadata cell. Formie 3 exports wrote `1` or nothing,
+     * Formie 4 exports write a translated Yes/No.
+     */
+    private function _isTruthy(?string $value): bool
+    {
+        $value = mb_strtolower(trim((string)$value));
+
+        if ($value === '') {
+            return false;
+        }
+
+        return in_array($value, ['1', 'true', 'yes', 'y', 'oui', mb_strtolower(Craft::t('app', 'Yes')), mb_strtolower(Craft::t('site', 'Yes'))], true);
+    }
+
+    /**
+     * Prepares the value of a column holding a whole field. Formie 4 exports a
+     * Name field as one "First Last" column unless sub-field columns are asked
+     * for; when the field stores first and last names separately, the value is
+     * split on its first space so the name is not lost.
+     *
+     * @param string[] $warnings
+     */
+    private function _combinedValue(FieldInterface $field, string $value, string $csvColumn, array &$warnings): array|string
+    {
+        if (!$field instanceof Name || !$field->useMultipleFields) {
+            return $value;
+        }
+
+        $subHandles = array_map(fn($subField) => $subField->handle, $field->getFields());
+        if (!in_array('firstName', $subHandles, true) || !in_array('lastName', $subHandles, true)) {
+            return $value;
+        }
+
+        $warning = "Column \"{$csvColumn}\" holds full names: they were split on the first space into first and last name. Export the sub-field columns to keep them exact.";
+        if (!in_array($warning, $warnings, true)) {
+            $warnings[] = $warning;
+        }
+
+        $parts = preg_split('/\s+/u', $value, 2);
+
+        return [
+            'firstName' => $parts[0],
+            'lastName' => $parts[1] ?? '',
+        ];
+    }
+
+    /**
      * Resolves the sub-field a CSV column feeds, for nested fields such as Name
      * (multiple fields) or Address. Formie exports them as "Parent label: Sub label";
      * the sub label is matched against the sub-fields' labels and handles,
@@ -647,7 +718,7 @@ class FormieImportService extends Component
      */
     private function _subFieldHandle(FieldInterface $field, string $csvColumn): ?string
     {
-        if (!$field instanceof SingleNestedField || !str_contains($csvColumn, ':')) {
+        if (!$field instanceof ContainerParentField || !str_contains($csvColumn, ':')) {
             return null;
         }
 

@@ -52,7 +52,7 @@ class FormieController extends Controller
 
         foreach ($forms as $form) {
             $this->stdout("\n--- {$form->title} (handle: {$form->handle}) ---\n");
-            foreach ($form->getCustomFields() as $field) {
+            foreach ($form->getFields() as $field) {
                 $type = (new \ReflectionClass($field))->getShortName();
                 $this->stdout("  {$field->handle} ({$type}) — \"{$field->label}\"\n");
             }
@@ -88,7 +88,7 @@ class FormieController extends Controller
             return ExitCode::DATAERR;
         }
 
-        $fields = $form->getCustomFields();
+        $fields = $form->getFields();
         $validHandles = array_map(fn($f) => $f->handle, $fields);
         $mapping = $service->buildAutoMapping($headers, $fields);
 
@@ -153,7 +153,7 @@ class FormieController extends Controller
             }
         } else {
             $headers = $service->readCsvHeaders($file, $this->delimiter);
-            $columnMapping = $service->buildAutoMapping($headers, $form->getCustomFields());
+            $columnMapping = $service->buildAutoMapping($headers, $form->getFields());
             $this->stdout("Auto-mapped " . count($columnMapping) . " columns:\n");
             foreach ($columnMapping as $csvCol => $handle) {
                 $this->stdout("  \"{$csvCol}\" → {$handle}\n");

@@ -89,7 +89,7 @@ class FormieImportController extends Controller
                 $f = $formsByHandle[$csvFormName] ?? $formsByTitle[$csvFormName] ?? null;
                 if ($f) {
                     $formsMap[$csvFormName] = $f;
-                    $fields = $f->getCustomFields();
+                    $fields = $f->getFields();
                     $allFormFields[$f->handle] = $fields;
                     $allMappings[$f->handle] = $service->buildAutoMapping($headers, $fields);
                 }
@@ -133,7 +133,7 @@ class FormieImportController extends Controller
             return $this->redirect('craft-formie-import');
         }
 
-        $formFields = $form->getCustomFields();
+        $formFields = $form->getFields();
         $autoMapping = $service->buildAutoMapping($headers, $formFields);
 
         return $this->renderTemplate('craft-formie-import/formie-import/mapping', [

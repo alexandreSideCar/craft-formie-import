@@ -38,7 +38,7 @@ When relevant, the following Claude skills cover this work: `craftcms` (plugin d
 | Handle | `craft-formie-import` |
 | Namespace | `sidecar\craftformieimport\` → `src/` |
 | Entry point | `src/Plugin.php` (`sidecar\craftformieimport\Plugin`) |
-| Requires | PHP ^8.2, craftcms/cms ^5.3, verbb/formie ^3.0 |
+| Requires | PHP ^8.2, craftcms/cms ^5.3, verbb/formie ^4.0 |
 | Schema version | `1.0.0` |
 
 ## Structure

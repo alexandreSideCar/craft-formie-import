@@ -21,7 +21,7 @@ CSV import tool for Formie submissions in Craft CMS 5.
 
 - Craft CMS 5.3+
 - PHP 8.2+
-- [Formie](https://verbb.io/craft-plugins/formie) 3.0+
+- [Formie](https://verbb.io/craft-plugins/formie) 4.0+ (use Formie Import 1.x with Formie 3)
 
 ## Installation
 
@@ -82,9 +82,19 @@ php craft craft-formie-import/formie/import-csv path/to/export.csv \
 
 ## CSV Format
 
-The plugin expects a CSV exported from Formie. Meta columns (`ID`, `Form ID`, `Form Name`, `User ID`, `IP Address`, `Is Incomplete?`, `Is Spam?`, etc.) are recognized automatically and excluded from field mapping.
+The plugin reads the CSV files exported by Formie, from either major version:
+
+- **Formie 4** (Submissions → Export, or a report). Tick the `ID` and `IP Address` columns in the export dialog if you want them. Flags are read as `Yes` / `No`.
+- **Formie 3** (the "Default" element export), which makes the plugin usable to bring Formie 3 submissions into a Formie 4 site.
+
+Meta columns (`ID`, `Form ID`, `Form Name`, `User ID`, `IP Address`, `Is Incomplete?`, `Is Spam?`, etc.) are recognized automatically and excluded from field mapping.
 
 Data columns are matched to form fields by label or handle. Sub-fields use colon notation (e.g., `Name: First Name`).
+
+Two things to know about a Formie 4 export:
+
+- A Name field is exported as one "First Last" column by default. When the target field stores first and last names separately, the value is split on its first space and a warning is reported. For an exact round trip, export from a report with **Parent Field Columns** set to **Separate Columns**.
+- `Spam Reason` and `Spam Type` are not part of the export, so they cannot be restored. The spam flag itself is.
 
 ## License
 
